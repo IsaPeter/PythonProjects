@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""
+The System Info Gathering Module
+
+This module will gather information about the system
+"""
+
+info = {'name':'sysinfo',
+        'description':'system information gathering',
+        'type':'post',
+        'author':'Peter Isa'}
+
+options = {'session':''}
+
+
+def run(*args):
+    print("[!] Not Implemented yet!")
