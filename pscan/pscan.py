@@ -8,13 +8,14 @@ start_port = 1
 end_port = 65535
 host = 'localhost'
 thread_num = 1
-timeout = .5    
+timeout = .5
 open_ports = []
 scanned_ports = 0
 total_open = 0
 total_closed = 0
 port_queue = queue.Queue()
 thread_pool = []
+namp_scan = False
 
 
 def get_port_range(inaddress):
@@ -27,11 +28,15 @@ def get_port_range(inaddress):
     return res
 
 def parsing_arguments():
-    global start_port, end_port, host, thread_num
+    global start_port, end_port, host, thread_num, timeout, namp_scan
     parser = argparse.ArgumentParser()
     parser.add_argument('-H','--host',dest="host",help='The host of the scan')
     parser.add_argument('-p','--port',dest="port",help='The port (range)')
     parser.add_argument('-t','--threads',dest='threads',help='The scanning threads number')
+    parser.add_argument('-T','--timeout',dest='timeout',help='The timeout value to wait for the connection')
+    parser.add_argument('-o','--output',dest='output',help='The output file')
+    parser.add_argument('--nmap',dest='nmap',action='store_true',help='Run nmap version scan to the found ports')
+    
     
     
     args = parser.parse_args()
@@ -42,13 +47,23 @@ def parsing_arguments():
         end_port = int(r[1])
     if args.host: host = args.host
     if args.threads: thread_num = int(args.threads)
+    if args.timeout: timeout = int(args.timeout)
+    if args.nmap: namp_scan = True
     
 
 def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 
-
+def nmap_version_scan():
+    global open_ports, host
+    cmd = 'sudo nmap -A -sV -O -p '
+    for p in open_ports:
+        cmd += str(p)+","
+    cmd = cmd[:-1]+ " "+host+f" -oN nmap_version_scan_{host}"
+    print(f"Running Nmap: {cmd}")
+    os.system(cmd)
+    
 def thread_scan():
     global timeout, total_open, total_closed,port_queue,open_ports, host, scanned_ports
     #name = id_generator()
@@ -62,6 +77,7 @@ def thread_scan():
             if result == 0:
                 print("tcp/{} is open".format(port))
                 total_open += 1
+                open_ports.append(port)
             else:
                 #print(name+": Port closed: "+str(port))
                 total_closed += 1
@@ -72,7 +88,7 @@ def thread_scan():
             pass
         
 def main():
-    global host, start_port, end_port,thread_num,port_queue, thread_pool, scanned_ports, total_open, total_closed
+    global host, start_port, end_port,thread_num,port_queue, thread_pool, scanned_ports, total_open, total_closed, namp_scan
         
     parsing_arguments()
     # parse given arguments
@@ -108,6 +124,9 @@ def main():
     print("Total Open Ports Number : "+str(total_open))
     print("Closed Ports Number : "+str(total_closed))
     print("Elapsed Time: "+str(elapsed))
+    if namp_scan:
+        nmap_version_scan()
+    
     
 if __name__ == '__main__':
     main()
