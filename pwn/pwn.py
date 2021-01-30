@@ -29,10 +29,10 @@ class PWNReceiver:
         if self.protocol == PWNProtocol.TCP:
             self.server.bind((self.server_address, self.server_port))
             self.server.listen()
-            print(f"[*] Listening on {self.server_address}:{str(self.server_port)}")
+            print("[*] Listening on "+self.server_address+":"+str(self.server_port))
             conn, addr = self.server.accept()
             self.client = conn # set the connected client
-            print(f"[+] Client connected {str(addr[0])}:{str(addr[1])}")
+            print("[+] Client connected"+str(addr[0])+":"+str(addr[1]))
     def handle_message(self):
         try:
             if self.protocol == PWNProtocol.TCP:
@@ -61,8 +61,8 @@ class PWNReceiver:
                 uploaded += len(orig_data)
                 f.write(orig_data)
                 self.client.send("ok".encode())
-                print(f"{str(uploaded)}/{str(s)}\r", end="")
-        print(f"[+] File saved successfully as {fullpath}")
+                print(str(uploaded)+"/"+{str(s)}+"\r", end="")
+        print("[+] File saved successfully as "+fullpath)
     def __handle_tcp_download(self,n,m,a):
         fragment_size = 8000
         sent = 0
@@ -72,12 +72,12 @@ class PWNReceiver:
             data = df.read()
         file_size = len(data)
         chunks = [data[i:i+fragment_size] for i in range(0, len(data), fragment_size)]
-        self.client.send(f"{n};{str(file_size)};{a}".encode())
+        self.client.send((n+";"+str(file_size)+";"+a).encode())
         for c in chunks:
             sdata = base64.b64encode(c)
             self.client.send(sdata)
             sent += len(c)
-            print(f"Sent: {str(sent)}/{str(file_size)}\r", end="")
+            print("Sent: "+str(sent)+"/"+str(file_size)+"\r", end="")
             resp = self.client.recv(64).decode().rstrip('\n')
             if resp != 'ok':
                 aborted = True
@@ -102,9 +102,9 @@ class PWNUploader:
         if self.protocol == PWNProtocol.TCP:    # If the used protocoll is TCP
             try:
                 self.client.connect((self.remote_address,self.remote_port))
-                print(f"[+] Successfully connected to target {self.remote_address}:{str(self.remote_port)}")
+                print("[+] Successfully connected to target "+self.remote_address+":"+str(self.remote_port))
             except:
-                print(f"[!] Failed to connect {self.remote_address}:{str(self.remote_port)}")
+                print("[!] Failed to connect "+self.remote_address+":"+str(self.remote_port))
         
     def disconnect(self):
         if self.protocol == PWNProtocol.TCP:
@@ -127,7 +127,7 @@ class PWNUploader:
                 ack = get_random_str(8)
                 aborted = False
                 # send message with important data
-                self.client.send(f"{file_name};{str(file_size)};upload;{ack}\n".encode())
+                self.client.send((file_name+";"+str(file_size)+";"+upload+";"+ack+"\n").encode())
                 received = self.client.recv(128).decode().rstrip('\n')
                 if received == ack:
                     if len(data)<fragment_size:
@@ -140,7 +140,7 @@ class PWNUploader:
                             send_data = base64.b64encode(c)
                             self.client.send(send_data)
                             uploaded += len(c)
-                            print(f"Uploaded: {str(uploaded)}/{file_size}\r", end="")
+                            print("Uploaded: "+str(uploaded)+"/"+str(file_size)+"\r", end="")
                             ok_msg = self.client.recv(64).decode().rstrip('\n')
                             if ok_msg != "ok": 
                                 aborted = True
@@ -176,9 +176,9 @@ class PWNDownloader:
         if self.protocol == PWNProtocol.TCP:
             try:
                 self.client.connect((self.remote_address,self.remote_port))
-                print(f"[+] Successfully connected to target {self.remote_address}:{str(self.remote_port)}")
+                print("[+] Successfully connected to target "+self.remote_address+":"+str(self.remote_port))
             except:
-                print(f"[!] Failed to connect {self.remote_address}:{str(self.remote_port)}")
+                print("[!] Failed to connect "+self.remote_address+":"+str(self.remote_port))
     def download(self):
         self.connect()
         if self.protocol == PWNProtocol.TCP:
@@ -189,7 +189,7 @@ class PWNDownloader:
             try:
                 fragment_size = 18000
                 ack = get_random_str(8)
-                dl_req = f"{self.filename};0;download;{ack}"
+                dl_req = self.filename+";0;download;"+ack
                 self.client.send(dl_req.encode())
                 file_data = self.client.recv(256).decode().rstrip('\n').split(';')
                 if len(file_data) == 3:
@@ -206,7 +206,7 @@ class PWNDownloader:
                                 orig_data = base64.b64decode(recv_b64)
                                 downloaded += len(orig_data)
                                 df.write(orig_data)
-                                print(f"Download: {str(downloaded)}/{str(file_size)}\r",end="")
+                                print(f"Download: "+str(downloaded)+"/"+str(file_size)+"\r",end="")
                                 self.client.send('ok'.encode())
                         print("[+] File Download successfully!")
                     else:
@@ -242,7 +242,7 @@ class PWNPrivesc():
         print("\nPrivesc:\n--------\n")
         for s in suid_binaries:
             if s in uniq:
-                print(f"[!] Privesc: {s}")        
+                print(f"[!] Privesc: "+s)        
 
 # Variables for the application
 server_mode = False
