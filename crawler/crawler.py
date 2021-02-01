@@ -111,6 +111,7 @@ class PyCrawler(object):
         self.crawl(self.starting_url)  
 
 
+    
 
 if __name__ == '__main__':
     crawler = PyCrawler('https://pymotw.com/2/urlparse/')
