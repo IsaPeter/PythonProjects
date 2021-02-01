@@ -18,6 +18,8 @@ class PyCrawler(object):
         self.links_found = 0
         self.showlinks = True
     
+    def get_all_links(self):
+        return self.links + self.sources
     def get_html(self, url):    
         try:    
             html = requests.get(url)    
