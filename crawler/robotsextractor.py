@@ -19,7 +19,7 @@ class robotsextractor():
         if resp.status_code == 200:
             print(f"[+] Robots Found [{str(resp.status_code)}]")
         else:
-            print(f"[!] Response [{str(resp.status_code)}]")
+            print(f"[!] Robots not found [{str(resp.status_code)}]")
 
     def __extract_disallows(self,data):
         pattern = r'Disallow: (/.*)'
@@ -82,4 +82,11 @@ class robotsextractor():
 
 
     def get_links(self):
-        return self.disallows+self.allows+self+self.sitemaps
+        res = []
+        for d in self.disallows:
+            res.append(d)
+        for a in self.allows:
+            res.append(a)
+        for s in self.sitemaps:
+            res.append(s)
+        return res

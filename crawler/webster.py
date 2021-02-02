@@ -11,7 +11,6 @@ regex_pattern = ""
 verbose = False
 extensions = []
 deep_crawl = False
-ignore_robots = False
 extract_data = False
 output_file=""
 grepable_output_file= ""
@@ -21,7 +20,7 @@ check_robots = False
 
 
 def parse_arguments():
-    global url,depth,same_site,regex_pattern,verbose,extensions,deep_crawl,ignore_robots,extract_data, output_file,crawl_robots,check_robots, grepable_output_file
+    global url,depth,same_site,regex_pattern,verbose,extensions,deep_crawl,extract_data, output_file,crawl_robots,check_robots, grepable_output_file
     parser = argparse.ArgumentParser()
     parser.add_argument('-u','--url',dest='url',help='The crawling URL')
     parser.add_argument('-d','--depth',dest='depth',help='The depth of the crawl')
@@ -53,7 +52,6 @@ def parse_arguments():
     if args.verbose: verbose = True
     if args.regex: regex_pattern = str(args.regex)
     if args.deepcrawl: deep_crawl = True
-    if args.ignorerobots: ignore_robots = True
     if args.extractdata: extract_data = True
     if args.normaloutput: output_file = args.normaloutput
     if args.grepableoutput: grepable_output_file = args.grepableoutput
@@ -69,7 +67,7 @@ def extract_data(links):
 def deep_crawl_uris(uris,cr):
     for u in uris:
         try:
-            cr.crawl(u,depth=cr.crawl_depth)
+            cr.crawl(u)
         except Exception as x:
             print(x)
 def write_normal_output(fname,cr):
@@ -97,10 +95,13 @@ def main():
     if crawl_robots:
         r = robotsextractor(url)
         r.extract()
-        c.links.append(r.get_links())
+        rlinks = r.get_links()
+        if len(rlinks) > 0:
+            for rl in rlinks:
+                c.links.append()
         
     if deep_crawl:
-        deep_crawl_uris(c.get_all_links()) # perform a deep crawling
+        deep_crawl_uris(c.links,c) # perform a deep crawling
         
     
     if extract_data:

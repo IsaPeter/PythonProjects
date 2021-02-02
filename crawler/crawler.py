@@ -19,7 +19,15 @@ class PyCrawler(object):
         self.showlinks = True
     
     def get_all_links(self):
-        return self.links + self.sources
+        res = []
+        for s in self.sources:
+            if s not in res:
+                res.append(s)
+        for l in self.links:
+            if l not in res:
+                res.append(l)
+        return res
+    
     def get_html(self, url):    
         try:    
             html = requests.get(url)    
@@ -43,12 +51,13 @@ class PyCrawler(object):
                 else:
                     link_with_base = urljoin(base,link)
                 li[i] = link_with_base
-                self.links.append(link)
+                self.links.append(link_with_base)
         
         for s in self.get_src(html,base):
-            self.sources.append(s)
-            if self.showlinks:
-                print(s)
+            if s not in self.sources:
+                self.sources.append(s)
+                if self.showlinks:
+                    print(s)
         
         return sorted(li)    
     
@@ -113,9 +122,3 @@ class PyCrawler(object):
 
     
 
-if __name__ == '__main__':
-    crawler = PyCrawler('https://pymotw.com/2/urlparse/')
-    crawler.showlinks = True
-    crawler.start()
-    print(f"Found Links: {str(crawler.links_found)}")
-    print(crawler.sources)
