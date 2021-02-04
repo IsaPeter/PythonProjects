@@ -16,16 +16,18 @@ output_file=""
 grepable_output_file= ""
 crawl_robots= False
 check_robots = False
+cookies = ""
 
 
 
 def parse_arguments():
-    global url,depth,same_site,regex_pattern,verbose,extensions,deep_crawl,extract_data, output_file,crawl_robots,check_robots, grepable_output_file
+    global url,depth,same_site,regex_pattern,verbose,extensions,deep_crawl,extract_data, output_file,crawl_robots,cookies,check_robots, grepable_output_file
     parser = argparse.ArgumentParser()
     parser.add_argument('-u','--url',dest='url',help='The crawling URL')
     parser.add_argument('-d','--depth',dest='depth',help='The depth of the crawl')
     parser.add_argument('-s','--same-site',dest="samesite",action='store_true',help='The crawl stay on site')
-    parser.add_argument('-a','--all-site',dest="allsite",action='store_true',help='The crawl go to other sites too')    
+    parser.add_argument('-a','--all-site',dest="allsite",action='store_true',help='The crawl go to other sites too')
+    parser.add_argument('-c','--cookie',dest="cookies",help='Set the cookie for the crawler')
     parser.add_argument('-v','--verbose',dest="verbose",action='store_true',help='Verbose output')
     parser.add_argument('-R','--regex',dest='regex',help='Extract data with regex')
     parser.add_argument('-e','--extension',dest='extension',help='Set the extension')
@@ -50,6 +52,14 @@ def parse_arguments():
     if args.checkrobots: check_robots = args.checkrobots
     if args.allsite: same_site = False
     if args.verbose: verbose = True
+    if args.cookies: 
+        try:
+            c = args.cookies
+            cp = crawler.cookie_parser()
+            cookies = cp.parse(c)
+        except Exception as x:
+            print(x)
+        
     if args.regex: regex_pattern = str(args.regex)
     if args.deepcrawl: deep_crawl = True
     if args.extractdata: extract_data = True
@@ -82,11 +92,12 @@ def write_greppable_output(fname,cr):
             no.write("SRC\t"+l)
             
 def main():
-    global url,depth,same_site,regex_pattern,verbose,extensions,extract_data,deep_crawl,check_robots,crawl_robots
+    global url,depth,same_site,regex_pattern,verbose,extensions,extract_data,deep_crawl,check_robots,crawl_robots, cookies
     parse_arguments()
     c = crawler.PyCrawler(url)    # create an object and pass an url to it
     c.samesite = same_site    # set the same site
     c.depth = depth   # set the depth
+    c.cookie = cookies
     c.start() # start the crawler
     
     if check_robots:

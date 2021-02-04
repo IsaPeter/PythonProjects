@@ -18,6 +18,13 @@ class PyCrawler(object):
         self.links_found = 0
         self.showlinks = True
     
+    def set_cookie(self,cookies):
+        if cookies == type(""):
+            formatter = cookie_formatter()
+            formatter.parse(cookies)
+            self.cookie = formatter.cookies
+        else:
+            self.cookie = cookies
     def get_all_links(self):
         res = []
         for s in self.sources:
@@ -30,7 +37,7 @@ class PyCrawler(object):
     
     def get_html(self, url):    
         try:    
-            html = requests.get(url)    
+            html = requests.get(url,cookies=self.cookie)    
         except Exception as e:    
             print(e)    
             return ""    
@@ -122,3 +129,19 @@ class PyCrawler(object):
 
     
 
+
+
+
+class cookie_parser():
+    def __init__(self):
+        self.cookies = {}
+    def parse(self,cookie_string):
+        # check if more cokie is given
+        if ';' in cookie_string:
+            cookies = cookie_string.split(';') # split them in ; character
+        else:
+            cookies = cookie_string.rsplit(' ').lsplit(' ') # thim the trailing and the starting spaces
+        for c in cookies:
+            cookie = c.split('=')
+            self.cookies.update({cookie[0]:cookie[1]})
+        return self.cookies
