@@ -17,33 +17,61 @@ import lib.shm as shm
 # Variables
 prompt_string = 'phoenix > '    # The Phoenix default prompt string
 run_app = True                  # Handle the main thread to run if False the main will end
-
+list_result = []
+# The array which contains the paths of modules
+module_paths = ['modules','listeners']
 
 
 
 
 # Loading Phoenix associated modules
 def load_modules():
+    global module_paths
+    
     loader = modload.ModuleLoader() # Create a module loader
-    path = os.path.join(os.getcwd(),'modules') # Create path for modules
-    loader.load_modules(path) # loading the modules
+    
+    for p in module_paths:
+        path = os.path.join(os.getcwd(),p) # Create a joined path for actual path
+        loader.load_modules(path) # loading the modules
+    
     shm.loaded_modules = loader.get_modules() # Set the loaded modules into SHM (Shared Memory)
     
+# Load the Phoenix associeted listeners
+def load_listeners():
+    loader = modload.ModuleLoader() # Create a module loader
+    path = os.path.join(os.getcwd(),'listeners') # Create path for modules
+    loader.load_modules(path) # loading the modules
+    shm.loaded_listeners = loader.get_modules() # Set the loaded modules into SHM (Shared Memory)    
 
 # interpret the given command to make the application interactive.
 def command_interpreter(command):
     global run_app
     
-    if command == "list modules": # list modules
-        list_all_modules()
+    if command.startswith("list"): # list modules
+        listable = command.split(' ',1)
+        if len(listable) == 2:
+            if listable[1] == 'modules':
+                list_type('module')
+            elif listable[1] == 'listeners':
+                list_type('listener')
+        elif len(listable) < 2:
+            print("[!] Invalid Argument.")
+        
     elif command.startswith("use"): # using a module
-        name = command.split(' ',1)[1]
-        use_module(name)
+        cmd_split = command.split(' ',1)
+        if len(cmd_split) == 2:
+            name = cmd_split[1]
+            use_module(name)
+        elif len(cmd_split) < 2:
+            print("[!] Not enough parameter")
     elif command == "help": # show the help
         show_help()
     elif command.startswith("info"): # show info for a specified module
         name = command.split(' ',1)
-        show_module_info(name[1])
+        if len(name) == 2:
+            show_module_info(name[1])
+        elif len(name) < 2:
+            print("[!] Not enough parameter")
     elif command.startswith("search"): # search in modules
         pass
     elif command == "exit": # exit from the application
@@ -51,16 +79,45 @@ def command_interpreter(command):
         print("Exiting.. Bye!")
         
 def use_module(modname):
+    global list_result
+    is_result = False
+    mod_name = ''
+    mod_type = ''
+    
+    # get the module name and type from number
     if is_number(modname):
         n = int(modname) # the actual number
-        if n <= len(shm.loaded_modules):
-            m = shm.loaded_modules[n] # the module from the SHM
-            m.interactive()
+        if n <= len(list_result):
+            if len(list_result) > 0:
+                res = list_result[n]
+                mod_name = res['name']
+                mod_type = res['type']
+                is_result = True
+            else:
+                print(f"[!] No item with index {str(n)}")
+        else:
+            print(f"[!] {str(n)} is not a valid index number")
     else:
+        
+        for r in list_result:
+            if r['name'] == modname or r['id'] == modname:
+                res = r
+                mod_name = res['name']
+                mod_type = res['type']
+                is_result = True
+                
+    if is_result == False:
         m = get_module_by_name(modname)
         if m:
             m.interactive()
-    
+        else:
+            print('[!] Not found.')            
+    else:
+        m = get_module_by_name(mod_name)
+        if m:
+            m.interactive()
+        else:
+            print('[!] Not found.')
     
 # Show the help menu    
 def show_help():
@@ -68,7 +125,7 @@ def show_help():
     Help
     ----
     
-    list modules\tList all available modules
+    list [type]\t\tList all available [modules, listeners]
     use\t\t\tUse a selected module
     info\t\tShows info for a specified module
     help\t\tShows this menu
@@ -97,16 +154,30 @@ def get_module_by_name(module_name):
     for m in shm.loaded_modules:
         if m.name == module_name:
             return m
-
+        
 # List all available modules
 def list_all_modules():
+    global list_result
     i = 0
+    list_result.clear()
     print("\nAvailable Modules\n-----------------\n")
     for m in shm.loaded_modules:
+        list_result.append({'name':m.name,'number':i,'type':'module'})
         print(f"{str(i)}. {m.name}")
         i += 1
     print("\n")
     
+
+def list_type(type_name):
+    global list_result
+    i = 0
+    print(f"\nAvailable {type_name}s\n-----------------\n")
+    for m in shm.loaded_modules:
+        if m.module_type == type_name:
+            list_result.append({'name':m.name,'id':m.module_id,'number':i,'type':type_name})
+            print(f"{str(i)}. {m.name}")
+            i += 1
+    print("\n")
 # Check if an input is number or not
 def is_number(cmd):
     try:
@@ -119,7 +190,6 @@ def main():
     global run_app
     
     load_modules() # Loading framework modules
-    
     
     while run_app:
         cmd = input(prompt_string)

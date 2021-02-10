@@ -17,8 +17,9 @@ class ModuleLoader():
     def __init__(self):
         self.modules = []
         self.listeners = []
+        self.current_path = ""
     def load_modules(self,path):
-        
+        self.current_path = self.__get_current_path(path)
         modules = self.__get_all_modules(path)
         for f in modules:
             self.__import_module(f)
@@ -30,12 +31,19 @@ class ModuleLoader():
     def __get_all_modules(self,path):
         mods = []
         files = self.__get_all_files(path)
+        
         for f in files:
             fp = f.replace(path,'').replace('/','.').lstrip('.').replace('.py','')
-            mods.append('modules.'+fp)
+            mods.append(self.current_path+'.'+fp)
         return mods
     
-    
+    def __get_current_path(self,path):
+        parts = path.rsplit('/',1)
+        if len(parts) == 2:
+            return parts[1]
+        else:
+            return ""
+        
     def __import_module(self,name):
         try:
             mod = __import__(name)
@@ -43,9 +51,8 @@ class ModuleLoader():
             for comp in components[1:]:
                 mod = getattr(mod, comp)
             if mod.module_type:
-                if mod.module_type == 'phoenix_module':
-                    m = pm.phoenix_module(mod)
-                    self.modules.append(m)
+                m = pm.phoenix_module(mod)
+                self.modules.append(m)
                     
         except Exception as x:
             print(f"[x] {x}")

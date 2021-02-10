@@ -8,16 +8,26 @@ class phoenix_module:
         self.name = module.module_name                  # The name of the loaded module
         self.description = module.module_description    # The Description of the loaded module
         self.interact = False                           # When interact the module this variable handle the while loop
-        
+        self.module_type = module.module_type
+        self.module_id = module.module_id
         
     def __set_module(self,mod):
         self.module = mod
         self.__get_name()
         self.__get_description()
+        self.__get_type()
+        self.__get_module_id()
         
     def __get_name(self):
         if self.module != None:
             self.name = self.module.module_name
+            
+    def __get_type(self):
+        if self.module != None:
+            self.module_type = self.module.module_type
+    def __get_module_id(self):
+        if self.module != None:
+            self.module_id = self.module.module_id
             
     def __get_description(self):
         if self.module != None:
