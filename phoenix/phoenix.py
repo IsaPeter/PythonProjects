@@ -12,6 +12,7 @@ sys.path.append(approot)
 
 import lib.modload as modload
 import lib.shm as shm
+import lib.dcfind as dc
 
 
 # Variables
@@ -20,7 +21,7 @@ run_app = True                  # Handle the main thread to run if False the mai
 list_result = []
 # The array which contains the paths of modules
 module_paths = ['modules','listeners']
-
+dcf = dc.dead_connection_finder()
 
 
 
@@ -35,13 +36,6 @@ def load_modules():
         loader.load_modules(path) # loading the modules
     
     shm.loaded_modules = loader.get_modules() # Set the loaded modules into SHM (Shared Memory)
-    
-# Load the Phoenix associeted listeners
-def load_listeners():
-    loader = modload.ModuleLoader() # Create a module loader
-    path = os.path.join(os.getcwd(),'listeners') # Create path for modules
-    loader.load_modules(path) # loading the modules
-    shm.loaded_listeners = loader.get_modules() # Set the loaded modules into SHM (Shared Memory)    
 
 # interpret the given command to make the application interactive.
 def command_interpreter(command):
@@ -50,10 +44,12 @@ def command_interpreter(command):
     if command.startswith("list"): # list modules
         listable = command.split(' ',1)
         if len(listable) == 2:
-            if listable[1] == 'modules':
+            if listable[1] in ['modules','m']:
                 list_type('module')
-            elif listable[1] == 'listeners':
+            elif listable[1] in ['listeners','l']:
                 list_type('listener')
+            elif listable[1] in ['sessions','s']:
+                list_sessions()
         elif len(listable) < 2:
             print("[!] Invalid Argument.")
         
@@ -75,9 +71,36 @@ def command_interpreter(command):
     elif command.startswith("search"): # search in modules
         pass
     elif command == "exit": # exit from the application
+        dcf.stop()
         run_app = False
-        print("Exiting.. Bye!")
         
+        print("Exiting.. Bye!")
+    elif command == "sessions":
+        list_sessions()
+    elif command.startswith('interact'):
+        a = command.split(' ',1)
+        if len(a) == 2:
+            interact(a[1])
+        elif len(a) < 2:
+            print("[!] Missing parameter [session_name].")
+      
+def interact(session_name):
+    not_found = True
+    for s in shm.connected_clients:
+        if s.name == session_name:
+            not_found = False
+            s.interactive_module()
+    if not_found:
+        print(f"[!] Does not found session with name {session_name}!")
+def list_sessions():
+    i = 0
+    print("\nAvailable Sessions\n------------------\n")
+    for s in shm.connected_clients:
+        print(f"{str(i)}.\t{s.name}\t{s.address}")
+        i += 1
+    print()
+    
+    
 def use_module(modname):
     global list_result
     is_result = False
@@ -111,13 +134,21 @@ def use_module(modname):
         if m:
             m.interactive()
         else:
-            print('[!] Not found.')            
+            m = get_module_by_id(modname)
+            if m:
+                m.interactive()
+            else:
+                print('[!] Not found.')            
     else:
         m = get_module_by_name(mod_name)
         if m:
             m.interactive()
         else:
-            print('[!] Not found.')
+            m = get_module_by_id(mod_name)
+            if m:
+                m.interactive()
+            else:
+                print('[!] Not found.')    
     
 # Show the help menu    
 def show_help():
@@ -155,27 +186,19 @@ def get_module_by_name(module_name):
         if m.name == module_name:
             return m
         
-# List all available modules
-def list_all_modules():
-    global list_result
-    i = 0
-    list_result.clear()
-    print("\nAvailable Modules\n-----------------\n")
+def get_module_by_id(module_id):
     for m in shm.loaded_modules:
-        list_result.append({'name':m.name,'number':i,'type':'module'})
-        print(f"{str(i)}. {m.name}")
-        i += 1
-    print("\n")
-    
-
+        if m.module_id == module_id:
+            return m
 def list_type(type_name):
     global list_result
     i = 0
+    list_result.clear()
     print(f"\nAvailable {type_name}s\n-----------------\n")
     for m in shm.loaded_modules:
         if m.module_type == type_name:
             list_result.append({'name':m.name,'id':m.module_id,'number':i,'type':type_name})
-            print(f"{str(i)}. {m.name}")
+            print(f"{str(i)}. {m.module_id}\t{m.name}")
             i += 1
     print("\n")
 # Check if an input is number or not
@@ -186,11 +209,13 @@ def is_number(cmd):
     except:
         return False
     
+
 def main():
-    global run_app
+    global run_app, dcf
     
     load_modules() # Loading framework modules
     
+    dcf.start()
     while run_app:
         cmd = input(prompt_string)
         command_interpreter(cmd)

@@ -106,3 +106,5 @@ class phoenix_module:
             variables[v]= ''        
         elif command == 'help':
             self.show_help()
+        elif command == 'run' or command.startswith('run'):
+            self.run(command)

@@ -13,7 +13,8 @@ class PTY:
         self.termios, self.fcntl = termios, fcntl
         self.ptyi = None
         # open our controlling PTY
-        self.ptyi = open(os.readlink("/proc/%d/fd/%d" % (pid, slave)), "rb+", buffering=0)
+        fd_path = f"/proc/{str(pid)}/fd/{str(slave)}"
+        self.ptyi = open(os.readlink(fd_path), "rb+", buffering=0)
 
         # store our old termios settings so we can restore after
         # we are finished 
