@@ -13,6 +13,8 @@ sys.path.append(approot)
 import lib.modload as modload
 import lib.shm as shm
 import lib.dcfind as dc
+import lib.livedebug as debug
+
 
 
 # Variables
@@ -22,7 +24,6 @@ list_result = []
 # The array which contains the paths of modules
 module_paths = ['modules','listeners']
 dcf = dc.dead_connection_finder()
-
 
 
 # Loading Phoenix associated modules
@@ -83,20 +84,32 @@ def command_interpreter(command):
             interact(a[1])
         elif len(a) < 2:
             print("[!] Missing parameter [session_name].")
+    elif command == 'debug':
+        debug.debugger()
       
 def interact(session_name):
     not_found = True
-    for s in shm.connected_clients:
-        if s.name == session_name:
-            not_found = False
+    if is_number(session_name):
+        num = int(session_name)
+        if num <= len(shm.connected_clients):
+            s = shm.connected_clients[num]
             s.interactive_module()
-    if not_found:
-        print(f"[!] Does not found session with name {session_name}!")
+        else:
+            print(f"[!] {str(num)} is not a valid index!")
+    else:
+        for s in shm.connected_clients:
+            if s.name == session_name:
+                not_found = False
+                s.interactive_module()
+        if not_found:
+            print(f"[!] Does not found session with name {session_name}!")
 def list_sessions():
     i = 0
     print("\nAvailable Sessions\n------------------\n")
     for s in shm.connected_clients:
-        print(f"{str(i)}.\t{s.name}\t{s.address}")
+        sockname = s.client.getsockname()
+        localaddress = s.address
+        print(f"{str(i)}.\t{s.name}\t{sockname[0]}:{str(sockname[1])} => {localaddress[0]}:{str(localaddress[1])}")
         i += 1
     print()
     
@@ -156,10 +169,12 @@ def show_help():
     Help
     ----
     
-    list [type]\t\tList all available [modules, listeners]
-    use\t\t\tUse a selected module
-    info\t\tShows info for a specified module
-    help\t\tShows this menu
+    list [type]\t\t\tList all available [modules, listeners, sessions]
+    use\t\t\t\tUse a selected module
+    info\t\t\tShows info for a specified module
+    sessions [name/number]\tShow active sessions
+    interact [name/number]\tInteract with active session
+    help\t\t\tShows this menu
     """
     print(help+"\n")
 
@@ -201,6 +216,12 @@ def list_type(type_name):
             print(f"{str(i)}. {m.module_id}\t{m.name}")
             i += 1
     print("\n")
+def __get_autocomplete_names():
+    lista = ['list','modules','sessions','interact']
+    if len(shm.connected_clients) > 0:
+        for s in shm.connected_clients:
+            lista.append(s.name)
+    return lista
 # Check if an input is number or not
 def is_number(cmd):
     try:
@@ -214,10 +235,12 @@ def main():
     global run_app, dcf
     
     load_modules() # Loading framework modules
-    
     dcf.start()
+    shm.tab_complete.createListCompleter(__get_autocomplete_names())
+    shm.readline.set_completer(shm.tab_complete.listCompleter) 
     while run_app:
         cmd = input(prompt_string)
+        cmd = cmd.rstrip(' ')
         command_interpreter(cmd)
         
     
