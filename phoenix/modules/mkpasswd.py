@@ -39,7 +39,9 @@ def run(arguments=''):
     if arguments == '':
         password = variables['password']
         if password != '':
-            print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA512)))
+            enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA512))
+            print(enc)
+            return enc
         else:
             print("Please specify a Password string")
     else:
@@ -56,15 +58,16 @@ def run(arguments=''):
         if makepass:
             if password != '':
                 if hashtype == 'blowfish':
-                    print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_BLOWFISH)))
+                    enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_BLOWFISH))
                 elif hashtype == 'crypt':
-                    print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_CRYPT)))
+                    enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_CRYPT))
                 elif hashtype == 'md5':
-                    print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_MD5)))                
+                    enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_MD5))               
                 elif hashtype == 'sha256':
-                    print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA256)))
+                    enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA256))
                 elif hashtype == 'sha512':
-                    print(crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA512)))                
-                    
+                    enc = crypt.crypt(password, crypt.mksalt(crypt.METHOD_SHA512))                
+                print(enc)
+                return enc
                     
 #run('programneme --help')
