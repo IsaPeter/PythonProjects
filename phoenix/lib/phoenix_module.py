@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+import os,sys
+# append base path to sys.path
+runpath = os.path.dirname(os.path.realpath(__file__))
+approot = os.path.abspath(os.path.join(runpath, os.pardir))
+sys.path.append(os.path.join(runpath,'..'))
+sys.path.append(approot)
+from lib.helpmenu import HelpMenu
 
 
 # The Phoenix Module Class
@@ -35,7 +42,7 @@ class phoenix_module:
     def run(self,arguments):
         if self.module != None:
             try:
-                self.module.run(arguments)
+                self.module.run(arguments=arguments)
             except Exception as x:
                 print(f"[x] {x}")
         else:
@@ -74,14 +81,17 @@ class phoenix_module:
         else:
             print(f"[x] The module is Empty!")
     def show_help(self):
-        print("\nCommands\n--------\n")
-        print("bg, exit\tExit from the module")
-        print("(show) options\tShow available module options")
-        print("(show) info\tShow information about the module")
-        print("set\t\tSet value for a module variable")
-        print("unset\t\tUnset value for a module variable")
-        print("help\t\tShow this menu")
-        print()
+        
+        h = HelpMenu()
+        h.inner_heading_row_border = False
+        h.title = "Show Module Help"
+        h.add_item('bg, exit','Exit from the module')
+        h.add_item('(show) options','Show available module options')
+        h.add_item('(show) info','Show information about the module')
+        h.add_item('set','Set value for a module variable')
+        h.add_item('unset','Unset value for a module variable')
+        h.add_item('help','Show this menu')
+        h.print_help()        
     
     def command_interpreter(self,command):
         if command == 'bg' or command == 'exit':

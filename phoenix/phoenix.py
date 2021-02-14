@@ -14,7 +14,9 @@ import lib.modload as modload
 import lib.shm as shm
 import lib.dcfind as dc
 import lib.livedebug as debug
-
+from lib.helpmenu import HelpMenu
+import lib.sessionhandler as sh
+import lib.phoenixlibs as plib
 
 
 # Variables
@@ -86,21 +88,38 @@ def command_interpreter(command):
             print("[!] Missing parameter [session_name].")
     elif command == 'debug':
         debug.debugger()
+    elif command.startswith('run'):
+        r = command.split(' ',1)
+        if len(r) > 1:
+            module_parts = r[1].split(' ',1)
+            if len(module_parts) > 1:
+                module_name = module_parts[0]
+                module_args = module_parts[1]
+                rm = plib.RunModule(module_name)
+                rm.run(module_args)
+            else:
+                module_name = module_parts[0]
+                rm = plib.RunModule(module_name)
+                rm.run()
+        else:
+            print("[!] The run module need least 1 argument")
       
 def interact(session_name):
     not_found = True
     if is_number(session_name):
         num = int(session_name)
-        if num <= len(shm.connected_clients):
+        if num <= len(shm.connected_clients) and len(shm.connected_clients) >0:
             s = shm.connected_clients[num]
-            s.interactive_module()
+            handler = sh.sessionHandler(s)
+            handler.interactive()
         else:
             print(f"[!] {str(num)} is not a valid index!")
     else:
         for s in shm.connected_clients:
             if s.name == session_name:
                 not_found = False
-                s.interactive_module()
+                handler = sh.sessionHandler(s)
+                handler.interactive()                
         if not_found:
             print(f"[!] Does not found session with name {session_name}!")
 def list_sessions():
@@ -165,18 +184,20 @@ def use_module(modname):
     
 # Show the help menu    
 def show_help():
-    help = """\n
-    Help
-    ----
     
-    list [type]\t\t\tList all available [modules, listeners, sessions]
-    use\t\t\t\tUse a selected module
-    info\t\t\tShows info for a specified module
-    sessions [name/number]\tShow active sessions
-    interact [name/number]\tInteract with active session
-    help\t\t\tShows this menu
-    """
-    print(help+"\n")
+    h = HelpMenu()
+    h.inner_heading_row_border = False
+    h.title = "Phoenix Help Menu"
+    h.add_item('list [type]','List all available [modules, listeners, sessions]')
+    h.add_item('use','Use a selected mofule')
+    h.add_item('info','Shows info for a specified module')
+    h.add_item('sessions [name/number]','Show active sessions')
+    h.add_item('interact [name/number]','Interact with active session')
+    h.add_item('help','Shows this menu')
+    h.add_item('exit','Exit from the application')
+    h.print_help()
+
+
 
 # Show the info for a module
 def show_module_info(module_name):

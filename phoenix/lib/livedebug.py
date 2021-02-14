@@ -5,6 +5,7 @@ approot = os.path.abspath(os.path.join(runpath, os.pardir))
 sys.path.append(os.path.join(runpath,'..'))
 sys.path.append(approot)
 import lib.shm as shm
+import lib.sessionhandler as sh
 
 prompt = "debug> "
 run_debugger = True
@@ -22,6 +23,9 @@ def command_interpreter(command):
     if command == 'sessions': debug_sessions()
     if command == '1':get_socket_names()
     if command == '2':debug2()
+    if command == 'fdtest': fdtest()
+    if command == 'a':
+        sessionhandler()
 
 def debug_sessions():
     timeout = 1
@@ -42,3 +46,17 @@ def debug2():
     for s in shm.connected_clients:
         for i in str(s.client).split():
             print(i)
+def fdtest():
+    import os,time
+    for s in shm.connected_clients:
+        fno = s.client.fileno()
+        pid = os.getpid()
+        path = f"/proc/{str(pid)}/fd/{str(fno)}"
+        print(path)
+        print(os.path.exists(path))
+    time.sleep(1)
+def sessionhandler():
+    s = sh.sessionHandler(shm.connected_clients[0])
+    s.interactive()
+        
+        

@@ -15,7 +15,7 @@ class TCPClient():
         self.client = conn
         self.address = addr
         self.name = self.__generate_name()
-        self.interact_module = False        # Handle the modue interactive session. This is nit an interactive shell session
+        self.interact_module = False        # Handle the module interactive session. This is nit an interactive shell session
         self.default_receive_buffer = 8096  # The dafault buffer size to receive data
         self.dead = False
         self.maxtimeout = 20                # 20 sec
