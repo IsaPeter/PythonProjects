@@ -66,10 +66,12 @@ class directory():
     
     
     
-    
+ 
+"""   
 path = '/home/venom/Data/dev/python/PythonProjects/phoenix/lib'
 libpar = directory().get_parent(path)
 d = directory().get_files(path,topdironly=True)
 for a in d:
     a = a.replace(libpar,'').lstrip('/').replace('/','.')
     print(a)
+"""

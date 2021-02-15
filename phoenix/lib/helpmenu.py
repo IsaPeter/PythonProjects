@@ -10,14 +10,14 @@ class HelpMenu():
         self.outer_border = False
         self.inner_row_border = False
         self.inner_column_border = False
-        self.inner_heading_row_border = True
+        self.inner_heading_row_border = False
     def add_header(self,*argv):
         for arg in argv:
             self.headers.append(arg)
     def add_item(self,*args):
         itm = []
         for arg in args:
-            itm.append(arg)
+            itm.append(str(arg))
         self.menuItems.append(itm)
     def print_help(self):
         table_data = []

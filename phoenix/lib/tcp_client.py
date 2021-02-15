@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import socket, string, random, os, sys, readline
+import socket, string, random, os, sys, readline, select
 runpath = os.path.dirname(os.path.realpath(__file__))
 approot = os.path.abspath(os.path.join(runpath, os.pardir))
 sys.path.append(os.path.join(runpath,'..'))
@@ -9,6 +9,7 @@ import lib.shell as shell
 import lib.shm as shm
 from lib.helpmenu import HelpMenu
 from lib.tabCompleter import tabCompleter
+from enum import Enum
 
 class TCPClient():
     def __init__(self,conn,addr):
@@ -19,6 +20,9 @@ class TCPClient():
         self.default_receive_buffer = 8096  # The dafault buffer size to receive data
         self.dead = False
         self.maxtimeout = 20                # 20 sec
+        self.shelltype = shellType.Simple_TCP # Defaultly the shell type is Simple TCP
+        self.available = True
+        self.__check_tcp_type()
 
     def __get_autocomplete_names(self):
         return [':bg',':exit',':terminate',':help']
@@ -115,3 +119,27 @@ class TCPClient():
         h.add_item(':<module_name>','Run a specified module')
         h.add_item(':help','Show this menu')
         h.print_help()
+    def __check_tcp_type(self):
+        try:
+            self.available = False
+            self.send('echo is_phoenix')
+            self.client.setblocking(0)
+            ready = select.select([self.client], [], [], 20)
+            if ready[0]:
+                data = self.client.recv(5).decode()
+                if data == 'True':
+                    self.shelltype = shellType.Phoenix_TCP
+                elif data == "is_phoenix":
+                    self.shelltype = shellType.Simple_TCP
+            else:
+                self.shelltype = shellType.Simple_TCP
+        except Exception as x:
+            print(x)
+            self.shelltype = shellType.Simple_TCP
+        self.client.setblocking(1)
+        self.available = True
+        
+        
+class shellType(Enum):
+    Simple_TCP = 1
+    Phoenix_TCP = 2

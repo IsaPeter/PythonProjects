@@ -35,10 +35,12 @@ class sessionHandler():
                 if command in [':bg',':exit']:
                     self.interact = False
                 elif command == ':terminate':
-                    self.client.close()
+                    self.client.client.close()
                     self.interact_module = False
                 elif command == ':help':
                     self.help()
+                elif command == ':info':
+                    self.shell_info()              
                 elif command.startswith(':'):
                     module_name = command.split(' ',1)[0].replace(':','')
                     module = self.__get_module_by_id(module_name)
@@ -60,8 +62,20 @@ class sessionHandler():
         h.add_item(':terminate','Terminate the current session')
         h.add_item(':<module_name>','Run a specified module')
         h.add_item(':help','Show this menu')
+        h.add_item(':info','Show Shell Information')
         h.print_help()
     def __get_module_by_id(self,module_id):
         for m in shm.loaded_modules:
             if m.module_id == module_id:
                 return m    
+    def shell_info(self):
+        h = HelpMenu()
+        h.title=f"Shell Information"
+        sockname = self.client.client.getsockname()
+        localaddress = self.client.address
+        h.add_item('Name:',self.client.name)
+        h.add_item("Remote:",f"{str(sockname[0])}:{str(sockname[1])}")
+        h.add_item("Local:",f"{str(localaddress[0])}:{str(localaddress[1])}")
+        h.add_item('Shell Type:',self.client.shelltype.name)
+        h.print_help()
+        

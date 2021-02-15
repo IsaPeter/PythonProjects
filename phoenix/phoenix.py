@@ -230,12 +230,16 @@ def list_type(type_name):
     global list_result
     i = 0
     list_result.clear()
-    print(f"\nAvailable {type_name}s\n-----------------\n")
+    h = HelpMenu()
+    h.title=f"\nAvailable {type_name}s\n-----------------\n"
+    
     for m in shm.loaded_modules:
         if m.module_type == type_name:
             list_result.append({'name':m.name,'id':m.module_id,'number':i,'type':type_name})
-            print(f"{str(i)}. {m.module_id}\t{m.name}")
+            h.add_item(str(i)+'.',m.module_id,m.name)
+            #print(f"{str(i)}. {m.module_id}\t{m.name}")
             i += 1
+    h.print_help()
     print("\n")
 def __get_autocomplete_names():
     lista = ['list','modules','sessions','interact']
@@ -257,8 +261,10 @@ def main():
     
     load_modules() # Loading framework modules
     dcf.start()
+    
     shm.tab_complete.createListCompleter(__get_autocomplete_names())
     shm.readline.set_completer(shm.tab_complete.listCompleter) 
+    
     while run_app:
         cmd = input(prompt_string)
         cmd = cmd.rstrip(' ')
