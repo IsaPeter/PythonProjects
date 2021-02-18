@@ -110,6 +110,7 @@ def interact(session_name):
         num = int(session_name)
         if num <= len(shm.connected_clients) and len(shm.connected_clients) >0:
             s = shm.connected_clients[num]
+            shm.current_session = s
             handler = sh.sessionHandler(s)
             handler.interactive()
         else:
@@ -118,6 +119,7 @@ def interact(session_name):
         for s in shm.connected_clients:
             if s.name == session_name:
                 not_found = False
+                shm.current_session = s
                 handler = sh.sessionHandler(s)
                 handler.interactive()                
         if not_found:
@@ -128,7 +130,7 @@ def list_sessions():
     for s in shm.connected_clients:
         sockname = s.client.getsockname()
         localaddress = s.address
-        print(f"{str(i)}.\t{s.name}\t{sockname[0]}:{str(sockname[1])} => {localaddress[0]}:{str(localaddress[1])}")
+        print(f"{str(i)}.\t{s.name}\t{s.shelltype.name}\t{sockname[0]}:{str(sockname[1])} => {localaddress[0]}:{str(localaddress[1])}")
         i += 1
     print()
     

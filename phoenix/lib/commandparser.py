@@ -51,6 +51,8 @@ class commandParser():
                             self.args.update({i.name:i.value})                        
             return self.args
             
+    def parse_cmd(self,command):
+        pass
     def get_value(self,name):
         if self.exists(name):
             for i in self.items:

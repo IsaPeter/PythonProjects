@@ -13,6 +13,7 @@ connected_clients = []
 loaded_modules = []
 addressPool = ap.addressPool() # create an adress pool
 tab_complete = tabCompleter()
+current_session = None
 
 # Settings
 readline.set_completer_delims('\t')

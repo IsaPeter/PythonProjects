@@ -26,6 +26,8 @@ def command_interpreter(command):
     if command == 'fdtest': fdtest()
     if command == 'a':
         sessionhandler()
+    if command == "exec":
+        execmd()
 
 def debug_sessions():
     timeout = 1
@@ -59,4 +61,8 @@ def sessionhandler():
     s = sh.sessionHandler(shm.connected_clients[0])
     s.interactive()
         
-        
+def execmd():
+    import lib.Session as session
+    s = shm.connected_clients[0]
+    res = session.exec_cmd('ls -tlah',s.name)
+    print(res)

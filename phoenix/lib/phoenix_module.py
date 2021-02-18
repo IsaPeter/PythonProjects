@@ -72,10 +72,11 @@ class phoenix_module:
     def show_module_options(self):
         if self.module != None:
             try:
-                print("\nOptions\n--------\n")
+                h = HelpMenu()
+                h.title = "Module Options"
                 for n, v in self.module.variables.items():
-                    print(f"{n}\t\t{v}")
-                print("\n")
+                    h.add_item(str(n),str(v))
+                h.print_help()
             except Exception as x:
                 print(f"[x] {x}")
         else:

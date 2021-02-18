@@ -122,14 +122,14 @@ class TCPClient():
     def __check_tcp_type(self):
         try:
             self.available = False
-            self.send('echo is_phoenix')
+            #self.send('echo is_phoenix >/dev/null')
             self.client.setblocking(0)
-            ready = select.select([self.client], [], [], 20)
+            ready = select.select([self.client], [], [], 1)
             if ready[0]:
-                data = self.client.recv(5).decode()
-                if data == 'True':
+                data = self.client.recv(20).decode()
+                if data == 'phoenix':
                     self.shelltype = shellType.Phoenix_TCP
-                elif data == "is_phoenix":
+                else:
                     self.shelltype = shellType.Simple_TCP
             else:
                 self.shelltype = shellType.Simple_TCP
