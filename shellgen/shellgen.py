@@ -169,6 +169,5 @@ def main():
     
 
 if __name__ == '__main__':
-    #main()
-    for s in shells:
-        print(f"{s['name']} = '{s['name']}',")
+    main()
+    
